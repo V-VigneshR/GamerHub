@@ -35,11 +35,7 @@ def create_app(config_name='default'):
     def load_user(user_id):
         return User.query.get(int(user_id))
     
-    # 🔥 THE MAGIC PART: CREATE TABLES IF THEY DON'T EXIST
-    @app.before_first_request
-    def create_tables():
-        with app.app_context():
-            db.create_all()
+    
 
     # Register Blueprints
     from .routes import main, auth, api
@@ -55,5 +51,9 @@ def create_app(config_name='default'):
     @app.errorhandler(403)
     def forbidden_error(error):
         return render_template('error/permission-denied.html'), 403
+    
+    
+    with app.app_context():
+        db.create_all()
 
     return app
