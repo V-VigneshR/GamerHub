@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}GamerHub - Home{% endblock %}
+
+{% block content %}
+<main class="container my-4" style="opacity:0; animation: fadeInContent 0.8s forwards;">
+    <div class="text-center">
+        <h1> Digital Games</h1>
+    </div>
+
+    {% if boardgames %}
+        <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-4 mt-4">
+            {% for game in boardgames %}
+                <div class="col">
+                    <div class="card h-100 shadow-sm bg-light bg-opacity-75 fade-in">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ game.name }}</h5>
+                            <p>Type: {{ game.game_type }}</p>
+                            <p>Players: {{ game.min_players }} - {{ game.max_players }}</p>
+                            <p>Difficulty: {{ game.level }}</p>
+                            <a href="{{ url_for('main.boardgame_detail', id=game.id) }}" class="btn btn-outline-secondary">Game Info</a>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p class="text-center mt-5 text-light">No games available at the moment.</p>
+    {% endif %}
+
+    <div class="d-flex justify-content-center align-items-center gap-3 mt-5 flex-wrap">
+        {% if current_user.is_authenticated %}
+            {% if current_user.role == 'USER' %}
+                <a href="{{ url_for('main.add_boardgame') }}" class="btn btn-success">➕ Add New Game</a>
+            {% endif %}
+            <form action="{{ url_for('auth.logout') }}" method="post" style="margin: 0;">
+                <button type="submit" class="btn btn-danger">Logout</button>
+            </form>
+        {% else %}
+            <a href="{{ url_for('auth.login') }}" class="btn btn-outline-primary">Login</a>
+            <a href="{{ url_for('auth.new_user') }}" class="btn btn-outline-secondary">Register</a>
+        {% endif %}
+    </div>
+    <!-- 🔻 About Section -->
+    <section id="about" class="my-5 py-5 bg-light bg-opacity-75 rounded shadow-sm">
+        <div class="container">
+            <h2 class="text-center mb-4">About GamerHub</h2>
+            <p class="lead text-center">
+                GamerHub is a platform where gaming enthusiasts can explore, review, and manage a collection of digital games.
+                An exclusive space to connect all gamers to share their experiences and recommendations.
+            </p>
+            <ul class="fs-5">
+                <li>Users can enlist, browse and review games, rate them, and manage their wishlist/cart.</li>
+                <li>Managers have oversight on user reviews, can remove flagged content, and view platform-wide notifications.</li>
+            </ul>
+        </div>
+    </section>
+
+</main>
+{% endblock %}

@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block title %}Add a User{% endblock %}
+
+{% block content %}
+<main class="container">
+    <div class="p-4 p-md-5 mb-4 text-center">
+        <h1 class="my-2 pb-3">Add a User</h1>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ 'danger' if category == 'error' else category }}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <div id="error" class="error">
+            {% if errorMsg %}
+                <p>{{ errorMsg }}</p>
+            {% endif %}
+        </div>
+
+        <form method="post" action="{{ url_for('auth.new_user') }}">
+            {{ form.hidden_tag() }}
+
+            <div class="form-group row justify-content-center my-3">
+                <label for="username" class="col-sm-2 col-form-label text-end">User name:</label>
+                <div class="col-sm-4">
+                    {{ form.username(class="form-control") }}
+                    {% for error in form.username.errors %}
+                        <small class="text-danger">{{ error }}</small>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="form-group row justify-content-center my-3">
+                <label for="password" class="col-sm-2 col-form-label text-end">Password:</label>
+                <div class="col-sm-4">
+                    {{ form.password(class="form-control") }}
+                    {% for error in form.password.errors %}
+                        <small class="text-danger">{{ error }}</small>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="form-group row justify-content-center my-3">
+                <label for="role" class="col-sm-2 col-form-label text-end">Role:</label>
+                <div class="col-sm-4">
+                    {{ form.role(class="form-select") }}
+                    {% for error in form.role.errors %}
+                        <small class="text-danger">{{ error }}</small>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="text-center">
+                <input type="submit" value="Add User" class="btn btn-primary m-2">
+                <a href="{{ url_for('main.home') }}" class="btn-home m-2">Back to Home</a>
+            </div>
+        </form>
+    </div>
+</main>
+{% endblock %}

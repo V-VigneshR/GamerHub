@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+
+<head>
+    {% include 'fragments/header.html' %}
+    <title>{{ boardgame.name }}</title>
+</head>
+
+<body>
+    {% include 'fragments/links.html' %}
+
+    <main class="container py-5">
+        <div class="text-center mb-5">
+            <h1 class="display-5 fw-bold">{{ boardgame.name }}</h1>
+        </div>
+
+        <div class="card shadow-sm mx-auto mb-4" style="max-width: 600px;">
+            <div class="card-body">
+                <p class="card-text h5" title="1 - Very easy, 5 - Very Difficult">
+                    🎯 <strong>Game Level:</strong> {{ boardgame.level }}
+                </p>
+
+                {% if boardgame.max_players != '+' %}
+                    <p class="card-text h5">
+                        👥 <strong>Players:</strong> {{ boardgame.min_players }} - {{ boardgame.max_players }}
+                    </p>
+                {% else %}
+                    <p class="card-text h5">
+                        👥 <strong>Players:</strong> {{ boardgame.min_players }}+
+                    </p>
+                {% endif %}
+
+                <p class="card-text h5">
+                    🧩 <strong>Game Type:</strong> {{ boardgame.game_type }}
+                </p>
+
+                <p class="card-text h5">
+                    📝 <a href="{{ url_for('main.get_reviews', id=boardgame.id) }}" class="link-primary">View Reviews</a>
+                </p>
+            </div>
+        </div>
+
+        {% if not current_user.is_authenticated %}
+            <div class="text-center">
+                <p class="lead">🔐 Please <a href="{{ url_for('auth.login') }}">login</a> to purchase or review this product.</p>
+                <p class="lead">New user? <a href="{{ url_for('auth.new_user') }}">Register here</a></p>
+            </div>
+        {% else %}
+            <div class="text-center">
+                <form action="{{ url_for('main.cart') }}" method="get">
+                    <button type="submit" class="btn btn-success m-2">🛒 Go to Cart</button>
+                </form>
+
+                <form action="{{ url_for('main.add_review', id=boardgame.id) }}" method="get">
+                    <button type="submit" class="btn btn-outline-primary m-2">💬 Write a Review</button>
+                </form>
+
+                {% if current_user.is_seller or current_user.is_admin %}
+                <form action="{{ url_for('main.add_boardgame') }}" method="get">
+                    <button type="submit" class="btn btn-warning m-2">➕ Add Product</button>
+                </form>
+                {% endif %}
+
+                <form action="{{ url_for('auth.logout') }}" method="post">
+                    <button type="submit" class="btn btn-danger m-2">🚪 Logout</button>
+                </form>
+            </div>
+        {% endif %}
+    </main>
+
+    {% include 'fragments/footer.html' %}
+</body>
+</html>

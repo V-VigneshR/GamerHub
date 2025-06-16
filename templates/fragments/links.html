@@ -1,0 +1,54 @@
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark p-3 shadow-sm sticky-top fade-in">
+    <div class="container-fluid">
+        <a class="navbar-brand fs-5 fw-bold" href="{{ url_for('main.home') }}">
+            GamerHub
+        </a>
+
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+                data-bs-target="#navbarMenu" aria-controls="navbarMenu"
+                aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse justify-content-end" id="navbarMenu">
+            <ul class="navbar-nav fs-5 gap-3">
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('main.home') }}">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a href="{{ url_for('main.home') }}#about" class="nav-link">About</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="mailto:vigneshvikash5@gmail.com">Contact</a>
+                </li>
+
+                {% if not current_user.is_authenticated %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('auth.login') }}">Login</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('auth.new_user') }}">Sign-up</a>
+                    </li>
+                {% else %}
+                    {% if current_user.role == 'MANAGER' %}
+                        <li class="nav-item position-relative">
+                            <a class="nav-link text-warning fw-bold" href="{{ url_for('main.view_notifications') }}">
+                                Notifications
+                                {% if current_user.flagged_review_count > 0 %}
+                                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                                        {{ current_user.flagged_review_count }}
+                                        <span class="visually-hidden">flagged reviews</span>
+                                    </span>
+                                {% endif %}
+                            </a>
+                        </li>
+                    {% endif %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" onclick="document.getElementById('logout-form').submit();">Logout</a>
+                        <form id="logout-form" action="{{ url_for('auth.logout') }}" method="post" style="display: none;"></form>
+                    </li>
+                {% endif %}
+            </ul>
+        </div>
+    </div>
+</nav>

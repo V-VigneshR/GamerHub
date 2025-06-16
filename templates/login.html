@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block title %}Log In!{% endblock %}
+
+{% block content %}
+<main class="container" style="opacity:0; animation: fadeInContent 0.8s forwards;">
+    <div class="p-4 p-md-5 mb-4 text-center">
+        <h1 class="my-2 pb-3">Please Login</h1>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    {% if category != 'message' %}
+                        <div class="alert alert-{{ 'danger' if category == 'error' else category }}">
+                            {{ message }}
+                        </div>
+                    {% endif %}
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        {% if request.args.get('error') %}
+            <div class="alert alert-danger">Invalid User Name or Password</div>
+        {% endif %}
+        {% if request.args.get('logout') %}
+            <div class="alert alert-success">You are now logged out</div>
+        {% endif %}
+
+        <form action="{{ url_for('auth.login') }}" method="post">
+            {{ form.hidden_tag() }}
+
+            <div class="form-group row justify-content-center my-3">
+                <label for="inputUserName" class="col-sm-2 col-form-label text-end fw-semibold">User name:</label>
+                <div class="col-sm-4">
+                    {{ form.username(class="form-control", id="inputUserName", placeholder="Enter Username") }}
+                    {% for error in form.username.errors %}
+                        <small class="text-danger">{{ error }}</small>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="form-group row justify-content-center my-3">
+                <label for="inputPassword" class="col-sm-2 col-form-label text-end fw-semibold">Password:</label>
+                <div class="col-sm-4">
+                    {{ form.password(class="form-control", id="inputPassword", placeholder="Enter Password") }}
+                    {% for error in form.password.errors %}
+                        <small class="text-danger">{{ error }}</small>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <input type="submit" value="Log In" class="btn btn-primary m-3">
+        </form>
+
+        <div class="text-center mt-3">
+            <a href="{{ url_for('auth.new_user') }}" class="btn-signup">Join / Sign up</a>
+            <a href="{{ url_for('main.home') }}" class="btn-home">Back to Home</a>
+        </div>
+    </div>
+</main>
+{% endblock %}

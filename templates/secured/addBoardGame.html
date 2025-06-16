@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block title %}Add a Board Game{% endblock %}
+
+{% block content %}
+<main class="container">
+    <div class="p-4 p-md-5 mb-4 text-center">
+        <div class="container col-md-6">
+
+            {% if current_user.role != 'USER' %}
+                <h2 class="text-danger">Access Denied</h2>
+                <p class="lead">Only regular users can add board games. You’re not allowed here, homie.</p>
+                <a class="btn btn-secondary" href="{{ url_for('main.home') }}">Return to Home</a>
+            {% else %}
+                <h1>Add your boardgame!</h1>
+
+                <!-- 🌟 Flash messages block START -->
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+                <!-- 🌟 Flash messages block END -->
+
+                <div class="bg-light border rounded py-3 my-3">
+                    <div id="error-boardgame" class="error-boardgame"></div>
+
+                    <form action="{{ url_for('main.add_boardgame') }}" method="POST" onsubmit="return verifyBoardGame()">
+                        {{ form.hidden_tag() }}
+
+                        <label for="name">Boardgame Name:</label>
+                        {{ form.name(class="form-control") }}
+                        <br><br>
+
+                        <label for="level" title="1 - very easy, 2 - easy, 3 - medium, 4 - difficult, 5 - very difficult">Difficulty:</label>
+                        {{ form.level(class="form-range", id="myRange", oninput="this.nextElementSibling.value = this.value") }}
+                        <output>1</output>
+                        <br><br>
+
+                        <label for="min_players">Minimum Players:</label>
+                        {{ form.min_players(class="form-select", id="min_players") }}
+                        <br><br>
+
+                        <label for="max_players">Maximum Players:</label>
+                        {{ form.max_players(class="form-select", id="max_players") }}
+                        <br><br>
+
+                        <label for="game_type">Game Type:</label>
+                        {{ form.game_type(class="form-control") }}
+                        <br><br>
+
+                        <input type="submit" value="Submit the boardgame" class="btn btn-primary m-2 pb-2">
+                    </form>
+                </div>
+            {% endif %}
+
+            <p class="lead">Go back <a href="{{ url_for('main.home') }}">Home</a></p>
+        </div>
+    </div>
+</main>
+{% endblock %}

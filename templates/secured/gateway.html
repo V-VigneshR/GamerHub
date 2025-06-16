@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    {% include 'fragments/header.html' %}
+    <title>Secured Section!</title>
+</head>
+
+<body>
+    {% include 'fragments/links.html' %}
+
+    <main class="container">
+        <div class="p-4 p-md-5 mb-4 text-center">
+            <div class="container col-md-6">
+                <h1>You are successfully logged in</h1>
+
+                <div class="bg-light border rounded py-3 my-3">
+                    {% if message %}
+                        <div class="error">
+                            <p>{{ message }}</p>
+                        </div>
+                    {% endif %}
+
+                    User's Name: {{ current_user.username }}<br>
+                    Roles: {{ current_user.roles | join(', ') }}<br>
+                </div>
+
+                {% if 'ROLE_USER' in current_user.roles %}
+                    <p>Go to <a href="{{ url_for('user_page') }}">USER secured page</a> to see user's authorities</p>
+                {% endif %}
+
+                {% if 'ROLE_MANAGER' in current_user.roles %}
+                    <p>Go to <a href="{{ url_for('manager_page') }}">MANAGER secured page</a> to see manager's authorities</p>
+                {% endif %}
+
+                <p>Go back <a href="{{ url_for('main.home') }}">Home</a></p>
+
+                <form method="POST" action="{{ url_for('logout') }}">
+                    <input type="submit" value="Logout" class="btn btn-primary m-2 pb-2">
+                </form>
+            </div>
+        </div>
+    </main>
+
+    <div class="b-example-divider border border-light"></div>
+    {% include 'fragments/links.html' %}
+    {% include 'fragments/footer.html' %}
+</body>
+
+</html>

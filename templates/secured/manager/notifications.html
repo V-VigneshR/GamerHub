@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {% include 'fragments/header.html' %}
+    <title>Flagged Reviews</title>
+</head>
+<body>
+    {% include 'fragments/links.html' %}
+    <main class="container mt-4">
+        <h2 class="text-center">🚨 Flagged Reviews</h2>
+        <hr>
+
+        {% if flagged_reviews %}
+            <ul class="list-group">
+                {% for review in flagged_reviews %}
+                    <li class="list-group-item">
+                        <strong>User:</strong> {{ review.user.username }} <br>
+                        <strong>Game ID:</strong> {{ review.game_id }} <br>
+                        <strong>Reason:</strong> {{ review.flag_reason }} <br>
+                        <strong>Review:</strong> {{ review.text }}
+                        <form action="{{ url_for('main.delete_review', review_id=review.id) }}" method="POST" class="mt-2">
+                            <button class="btn btn-sm btn-danger">🗑️ Remove</button>
+                        </form>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p class="text-muted text-center">No flagged reviews right now.</p>
+        {% endif %}
+
+        <div class="text-center mt-3">
+            <a href="{{ url_for('main.manager_secured') }}" class="btn btn-secondary">⬅️ Back</a>
+        </div>
+    </main>
+</body>
+</html>

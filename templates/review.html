@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block title %}Reviews - {{ boardgame.name }}{% endblock %}
+
+{% block content %}
+<main class="container mt-5">
+    <h1 class="text-center">Reviews for "{{ boardgame.name }}"</h1>
+    <hr>
+
+    {% if reviews %}
+    <div class="table-responsive">
+        <table class="table table-striped table-bordered shadow-sm mt-4">
+            <thead class="table-dark">
+                <tr>
+                    <th>User</th>
+                    <th>Review</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for review in reviews %}
+                <tr>
+                    <td><strong>{{ review.user.username }}</strong></td>
+                    <td>{{ review.text }}</td>
+                    <td>
+                        {% if current_user.is_authenticated %}
+                            {% if current_user.id == review.user_id %}
+                                <!-- User: Edit/Delete own -->
+                                <a href="{{ url_for('main.edit_review', review_id=review.id) }}" class="btn btn-sm btn-outline-warning me-1">✏️ Edit</a>
+                                <form action="{{ url_for('main.delete_review', review_id=review.id) }}" method="post" style="display:inline;" onsubmit="return confirm('Delete your review?');">
+                                    <button class="btn btn-sm btn-outline-danger">🗑️</button>
+                                </form>
+                            {% elif current_user.role == 'MANAGER' %}
+                                <!-- Manager: Delete any -->
+                                <form action="{{ url_for('main.delete_review', review_id=review.id) }}" method="post" style="display:inline;" onsubmit="return confirm('Manager: Delete this review?');">
+                                    <button class="btn btn-sm btn-danger">🗑️</button>
+                                </form>
+                            {% elif current_user.role == 'USER' %}
+                                <!-- USER: Flag others -->
+                                <form action="{{ url_for('main.flag_review', review_id=review.id) }}" method="post" style="display:inline;" onsubmit="return confirm('Flag this review for moderation?');">
+                                    <input type="hidden" name="reason" value="Inappropriate content">
+                                    <button class="btn btn-sm btn-outline-danger">🚩 Flag</button>
+                                </form>
+                            {% endif %}
+                        {% else %}
+                            <span class="text-muted">Login Required</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+        <p class="text-center text-muted mt-4">No reviews yet.</p>
+    {% endif %}
+
+    <div class="text-center my-4">
+        {% if not current_user.is_authenticated %}
+            <p class="lead">Login to post a review: <a href="{{ url_for('auth.login') }}">Login</a></p>
+        {% elif current_user.role == 'USER' %}
+            <a href="{{ url_for('main.add_review', id=boardgame.id) }}" class="btn btn-primary">➕ Add Review</a>
+        {% elif current_user.role == 'MANAGER' %}
+            <p class="text-muted">Managers cannot write reviews.</p>
+        {% endif %}
+    </div>
+
+    <div class="text-center">
+        <a href="{{ url_for('main.home') }}" class="btn btn-outline-secondary">🏠 Back to Home</a>
+    </div>
+</main>
+{% endblock %}
