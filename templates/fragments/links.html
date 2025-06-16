@@ -34,9 +34,9 @@
                         <li class="nav-item position-relative">
                             <a class="nav-link text-warning fw-bold" href="{{ url_for('main.view_notifications') }}">
                                 Notifications
-                                {% if current_user.flagged_review_count > 0 %}
+                                {% if flagged_review_count > 0 %}
                                     <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
-                                        {{ current_user.flagged_review_count }}
+                                        {{ flagged_review_count }}
                                         <span class="visually-hidden">flagged reviews</span>
                                     </span>
                                 {% endif %}
