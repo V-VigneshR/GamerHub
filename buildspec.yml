@@ -3,7 +3,7 @@ version: 0.2
 phases:
   install:
     runtime-versions:
-      python: 3.12  # Replace with your Flask app's Python version
+      python: 3.12
 
   pre_build:
     commands:
@@ -15,12 +15,14 @@ phases:
     commands:
       - echo Build started on `date`
       - pip install -r requirements.txt
+      - echo Running test suite...
+      - python -m tests.routeTests  # Run unittests
 
   post_build:
     commands:
       - echo Build completed on `date`
       - echo Packaging Flask app...
-      - zip -r flask-app.zip .  # Package all files as an artifact
+      - zip -r flask-app.zip .  # Package all files
 
 artifacts:
   files:
