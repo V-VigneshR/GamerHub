@@ -1,0 +1,34 @@
+version: 0.2
+
+phases:
+  install:
+    runtime-versions:
+      python: 3.11  # Use the version your Flask app uses
+    commands:
+      - echo Installing AWS CLI and updating pip...
+      - pip install --upgrade pip awscli
+      - echo Getting CodeArtifact auth token...
+      - export CODEARTIFACT_AUTH_TOKEN=`aws codeartifact get-authorization-token --domain gamerhub --domain-owner 975050195505 --region us-east-1 --query authorizationToken --output text`
+      - pip config set global.index-url https://aws:$CODEARTIFACT_AUTH_TOKEN@gamerhub-975050195505.d.codeartifact.us-east-1.amazonaws.com/pypi/devops-cicd-repo/simple/
+      - echo Installing dependencies from requirements.txt...
+      - pip install -r requirements.txt
+
+  pre_build:
+    commands:
+      - echo Pre-build steps go here if needed
+
+  build:
+    commands:
+      - echo Build phase started on `date`
+      - echo (Optional) Run tests here using pytest or similar
+      # - pytest tests/  # Uncomment if you have test cases
+
+  post_build:
+    commands:
+      - echo Build completed on `date`
+      - echo (Optional) Package Flask app or push artifact to S3
+
+artifacts:
+  files:
+    - "**/*"
+  discard-paths: no
