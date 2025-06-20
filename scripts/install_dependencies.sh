@@ -4,9 +4,6 @@ set -e  # Exit on any error
 echo "Starting dependency installation..."
 cd /home/ec2-user
 
-# Remove old files if they exist
-rm -rf flask-app/
-rm -f run.py app.py requirements.txt static/ templates/ tests/
 
 # Unzip the new application
 echo "Extracting flask-app.zip..."
