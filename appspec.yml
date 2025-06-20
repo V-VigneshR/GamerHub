@@ -4,14 +4,13 @@ files:
   - source: flask-app.zip
     destination: /home/ec2-user/
 hooks:
-
-  BeforeInstall:
-    - location: scripts/install_dependencies.sh
+  ApplicationStop:
+    - location: scripts/stop_server.sh
       timeout: 300
       runas: root
 
-  ApplicationStop:
-    - location: scripts/stop_server.sh
+  BeforeInstall:
+    - location: scripts/install_dependencies.sh
       timeout: 300
       runas: root
 

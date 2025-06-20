@@ -1,9 +1,8 @@
 #!/bin/bash
-
-isExistApp="$(pgrep -f gunicorn)"
-if [[ -n "$isExistApp" ]]; then
-    echo "Stopping GamerHub service..."
-    sudo systemctl stop gamerhub
+SERVICE="gamerhub"
+if systemctl is-active --quiet $SERVICE; then
+  echo "Stopping $SERVICE..."
+  sudo systemctl stop $SERVICE
 else
-    echo "GamerHub service not running."
+  echo "$SERVICE is not running."
 fi
