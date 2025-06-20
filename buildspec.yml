@@ -2,10 +2,6 @@ version: 0.2
 
 phases:
   install:
-    runtime-versions:
-      python: 3.12
-
-  pre_build:
     commands:
       - echo Initializing environment
       - export CODEARTIFACT_AUTH_TOKEN=`aws codeartifact get-authorization-token --domain gamerhub --domain-owner 975050195505 --region us-east-1 --query authorizationToken --output text`
@@ -14,15 +10,16 @@ phases:
   build:
     commands:
       - echo Build started on `date`
+      - python3 -m venv venv
+      - source venv/bin/activate
       - pip install -r requirements.txt
       - echo Running test suite...
-      - python -m tests.routeTests  # Run unittests
+      - python -m tests.routeTests
 
   post_build:
     commands:
       - echo Build completed on `date`
       - echo Packaging Flask app...
-      # Exclude the zip file itself and .git to avoid recursive packaging
       - zip -r flask-app.zip . -x "flask-app.zip" ".git/*" "__pycache__/*" "*.pyc"
 
 artifacts:
