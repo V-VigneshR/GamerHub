@@ -6,7 +6,7 @@ phases:
       python: 3.7
     commands:
       - echo Initializing environment
-      - export CODEARTIFACT_AUTH_TOKEN=`aws codeartifact get-authorization-token --domain gamerhub --domain-owner 975050195505 --region us-east-1 --query authorizationToken --output text`
+      - export CODEARTIFACT_AUTH_TOKEN=$(aws codeartifact get-authorization-token --domain gamerhub --domain-owner 975050195505 --region us-east-1 --query authorizationToken --output text)
       - pip config set global.index-url https://aws:$CODEARTIFACT_AUTH_TOKEN@gamerhub-975050195505.d.codeartifact.us-east-1.amazonaws.com/pypi/devops-cicd-repo/simple/
 
   build:
@@ -18,7 +18,7 @@ phases:
       - echo Running unit tests...
       - |
         if ! python -m unittest discover -s tests; then
-          echo "Tests failed but build will continue."
+          echo "Tests failed but continuing build."
         fi
 
   post_build:
@@ -26,11 +26,12 @@ phases:
       - echo Build completed on `date`
       - echo Packaging Flask app...
       - mkdir packaged
-      - shopt -s dotglob  
-      - cp -r * packaged/
+      - shopt -s dotglob
+      - cp -r * packaged/ || echo "Nothing to copy, but continuing"
       - cd packaged
       - zip -r ../flask-app.zip . -x "flask-app.zip" ".git/*" "__pycache__/*" "*.pyc"
       - cd ..
+      - echo Packaging done
 
 artifacts:
   files:
