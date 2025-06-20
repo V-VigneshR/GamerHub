@@ -22,7 +22,8 @@ phases:
     commands:
       - echo Build completed on `date`
       - echo Packaging Flask app...
-      - zip -r flask-app.zip .  # Package all files
+      # Exclude the zip file itself and .git to avoid recursive packaging
+      - zip -r flask-app.zip . -x "flask-app.zip" ".git/*" "__pycache__/*" "*.pyc"
 
 artifacts:
   files:
