@@ -27,4 +27,6 @@ phases:
 artifacts:
   files:
     - flask-app.zip
+    - appspec.yml
+    - scripts/**/*
   discard-paths: no
