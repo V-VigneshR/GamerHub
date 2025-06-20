@@ -3,7 +3,7 @@ version: 0.2
 phases:
   install:
     runtime-versions:
-    python: 3.7
+      python: 3.7
     commands:
       - echo Initializing environment
       - export CODEARTIFACT_AUTH_TOKEN=`aws codeartifact get-authorization-token --domain gamerhub --domain-owner 975050195505 --region us-east-1 --query authorizationToken --output text`
