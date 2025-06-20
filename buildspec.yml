@@ -26,6 +26,7 @@ phases:
       - echo Build completed on `date`
       - echo Packaging Flask app...
       - mkdir packaged
+      - shopt -s dotglob  
       - cp -r * packaged/
       - cd packaged
       - zip -r ../flask-app.zip . -x "flask-app.zip" ".git/*" "__pycache__/*" "*.pyc"
