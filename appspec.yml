@@ -1,8 +1,11 @@
 version: 0.0
 os: linux
 files:
-  - source: /
+  - source: flask-app.zip
     destination: /home/ec2-user/
+  - source: scripts/
+    destination: /home/ec2-user/scripts/
+
 hooks:
   ApplicationStop:
     - location: scripts/stop_server.sh
