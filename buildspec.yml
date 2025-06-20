@@ -25,9 +25,9 @@ phases:
     commands:
       - echo Build completed on `date`
       - echo Packaging Flask app...
-      - mkdir packaged
-      - shopt -s dotglob
-      - cp -r * packaged/ || echo "Nothing to copy, but continuing"
+      - mkdir -p packaged        # ✅ FIXED: creates the damn folder
+      - shopt -s dotglob         # includes hidden files (like .env, .gitignore)
+      - cp -r * packaged/
       - cd packaged
       - zip -r ../flask-app.zip . -x "flask-app.zip" ".git/*" "__pycache__/*" "*.pyc"
       - cd ..
