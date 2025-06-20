@@ -24,8 +24,8 @@ phases:
   post_build:
     commands:
       - echo Build completed on `date`
-      - echo Zipping up the Flask app...
-      - zip -r flask-app.zip . -x "flask-app.zip" ".git/*" "__pycache__/*" "*.pyc"
+      - echo Zipping app contents...
+      - zip -r flask-app.zip . -x "venv/*" "flask-app.zip" ".git/*" "*.pyc" "__pycache__/*"
 
 artifacts:
   files:
