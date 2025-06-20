@@ -2,14 +2,15 @@
 set -e
 
 echo "Starting dependency installation..."
-cd /home/ec2-user
 
-# Unzip the new application
+# This script runs in the extracted CodeDeploy directory, no need to cd
 echo "Extracting flask-app.zip..."
-unzip -o flask-app.zip
+unzip -o flask-app.zip -d /home/ec2-user
 
 # Set correct ownership
 chown -R ec2-user:ec2-user /home/ec2-user/
+
+cd /home/ec2-user
 
 # Create virtual environment
 echo "Setting up virtualenv with default Python..."
