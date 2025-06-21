@@ -1,22 +1,25 @@
 #!/bin/bash
 set -e
-
 echo "Starting dependency installation..."
-
 # Find where CodeDeploy extracted the files
 echo "Current directory: $(pwd)"
 echo "Looking for deployment directory..."
 
 # CodeDeploy typically extracts to a deployment directory
-# Let's find where the files actually are
+# Let's find the most recent deployment directory by modification time
 DEPLOYMENT_DIR=""
-if [ -f "/opt/codedeploy-agent/deployment-root/*/deployment-archive/requirements.txt" ]; then
-    DEPLOYMENT_DIR=$(dirname /opt/codedeploy-agent/deployment-root/*/deployment-archive/requirements.txt)
+
+# Find the most recent deployment directory by modification time
+LATEST_REQ_FILE=$(find /opt/codedeploy-agent/deployment-root -name "requirements.txt" -type f 2>/dev/null | head -1)
+
+if [ -n "$LATEST_REQ_FILE" ]; then
+    DEPLOYMENT_DIR=$(dirname "$LATEST_REQ_FILE")
+    echo "Using most recent deployment: $LATEST_REQ_FILE"
 elif [ -f "$CODEDEPLOY_ROOT/requirements.txt" ]; then
     DEPLOYMENT_DIR="$CODEDEPLOY_ROOT"
 else
-    # Search for requirements.txt in common locations
-    for dir in /opt/codedeploy-agent/deployment-root/*/deployment-archive /tmp/codedeploy-* /var/codedeploy-*; do
+    # Last resort: search other locations
+    for dir in /tmp/codedeploy-* /var/codedeploy-*; do
         if [ -f "$dir/requirements.txt" ]; then
             DEPLOYMENT_DIR="$dir"
             break
@@ -37,7 +40,6 @@ echo "Files in deployment directory:"
 ls -la
 
 echo "Copying application files to /home/ec2-user..."
-
 # Remove any existing app files first
 rm -rf /home/ec2-user/app /home/ec2-user/scripts /home/ec2-user/static /home/ec2-user/templates
 rm -f /home/ec2-user/*.py /home/ec2-user/*.txt /home/ec2-user/*.yml /home/ec2-user/Procfile
