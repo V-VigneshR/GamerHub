@@ -1,5 +1,4 @@
 version: 0.2
-
 phases:
   install:
     runtime-versions:
@@ -8,7 +7,6 @@ phases:
       - echo Initializing environment
       - export CODEARTIFACT_AUTH_TOKEN=$(aws codeartifact get-authorization-token --domain gamerhub --domain-owner 975050195505 --region us-east-1 --query authorizationToken --output text)
       - pip config set global.index-url https://aws:$CODEARTIFACT_AUTH_TOKEN@gamerhub-975050195505.d.codeartifact.us-east-1.amazonaws.com/pypi/devops-cicd-repo/simple/
-
   build:
     commands:
       - echo Build started on `date`
@@ -20,16 +18,16 @@ phases:
         if ! python -m unittest discover -s tests; then
           echo "Tests failed but continuing build."
         fi
-
   post_build:
     commands:
       - echo Build completed on `date`
-      - echo Zipping app contents...
-      - zip -r flask-app.zip . -x "venv/*" "flask-app.zip" ".git/*" "*.pyc" "__pycache__/*"
-
+      # No need to zip - CodeBuild will package the files directly
 artifacts:
   files:
-    - flask-app.zip
-    - appspec.yml
-    - scripts/**/*
+    - '**/*'
+  exclude-paths:
+    - 'venv/**/*'
+    - '.git/**/*'
+    - '**/*.pyc'
+    - '**/__pycache__/**/*'
   discard-paths: no
