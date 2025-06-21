@@ -7,6 +7,7 @@ from app.models import db, User
 from dotenv import load_dotenv
 import os
 from app.context_processors import inject_flagged_review_count
+
 load_dotenv()
 
 # Global extensions
@@ -35,8 +36,6 @@ def create_app(config_name='default'):
     def load_user(user_id):
         return User.query.get(int(user_id))
     
-    
-
     # Register Blueprints
     from .routes import main, auth, api
     app.register_blueprint(main)
@@ -52,8 +51,8 @@ def create_app(config_name='default'):
     def forbidden_error(error):
         return render_template('error/permission-denied.html'), 403
     
-    
-    with app.app_context():
-        db.create_all()
+    # Only create tables in development mode or when explicitly requested
+    # Remove automatic db.create_all() from here
+    # This will be handled in run.py for development and via migration scripts for production
 
     return app
