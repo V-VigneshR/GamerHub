@@ -3,12 +3,40 @@ set -e
 
 echo "Starting dependency installation..."
 
-# The files are already extracted by CodeDeploy, so we just need to copy them
-echo "Copying application files to /home/ec2-user..."
+# Find where CodeDeploy extracted the files
+echo "Current directory: $(pwd)"
+echo "Looking for deployment directory..."
 
-# Get the current directory (where CodeDeploy extracted files)
-CURRENT_DIR=$(pwd)
-echo "Current directory: $CURRENT_DIR"
+# CodeDeploy typically extracts to a deployment directory
+# Let's find where the files actually are
+DEPLOYMENT_DIR=""
+if [ -f "/opt/codedeploy-agent/deployment-root/*/deployment-archive/requirements.txt" ]; then
+    DEPLOYMENT_DIR=$(dirname /opt/codedeploy-agent/deployment-root/*/deployment-archive/requirements.txt)
+elif [ -f "$CODEDEPLOY_ROOT/requirements.txt" ]; then
+    DEPLOYMENT_DIR="$CODEDEPLOY_ROOT"
+else
+    # Search for requirements.txt in common locations
+    for dir in /opt/codedeploy-agent/deployment-root/*/deployment-archive /tmp/codedeploy-* /var/codedeploy-*; do
+        if [ -f "$dir/requirements.txt" ]; then
+            DEPLOYMENT_DIR="$dir"
+            break
+        fi
+    done
+fi
+
+if [ -z "$DEPLOYMENT_DIR" ]; then
+    echo "ERROR: Could not find deployment directory with requirements.txt"
+    echo "Searching for any requirements.txt files:"
+    find /opt /tmp /var -name "requirements.txt" 2>/dev/null || true
+    exit 1
+fi
+
+echo "Found deployment directory: $DEPLOYMENT_DIR"
+cd "$DEPLOYMENT_DIR"
+echo "Files in deployment directory:"
+ls -la
+
+echo "Copying application files to /home/ec2-user..."
 
 # Remove any existing app files first
 rm -rf /home/ec2-user/app /home/ec2-user/scripts /home/ec2-user/static /home/ec2-user/templates
@@ -32,7 +60,7 @@ chown -R ec2-user:ec2-user /home/ec2-user/
 cd /home/ec2-user
 
 # Verify requirements.txt exists
-echo "Checking if requirements.txt exists..."
+echo "Checking if requirements.txt exists in /home/ec2-user..."
 ls -la requirements.txt
 
 # Create virtual environment
