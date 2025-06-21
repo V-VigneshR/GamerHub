@@ -3,9 +3,23 @@ set -e
 
 echo "Starting dependency installation..."
 
-# Move all application files to /home/ec2-user
-echo "Copying app files to /home/ec2-user..."
-cp -r * /home/ec2-user/
+# The files are already extracted by CodeDeploy, so we just need to copy them
+echo "Copying application files to /home/ec2-user..."
+
+# Remove any existing app files first
+rm -rf /home/ec2-user/app /home/ec2-user/scripts /home/ec2-user/static /home/ec2-user/templates
+rm -f /home/ec2-user/*.py /home/ec2-user/*.txt /home/ec2-user/*.yml /home/ec2-user/Procfile
+
+# Copy only the application files (not system directories)
+cp -r app /home/ec2-user/ 2>/dev/null || true
+cp -r scripts /home/ec2-user/ 2>/dev/null || true
+cp -r static /home/ec2-user/ 2>/dev/null || true
+cp -r templates /home/ec2-user/ 2>/dev/null || true
+cp -r tests /home/ec2-user/ 2>/dev/null || true
+cp *.py /home/ec2-user/ 2>/dev/null || true
+cp *.txt /home/ec2-user/ 2>/dev/null || true
+cp *.yml /home/ec2-user/ 2>/dev/null || true
+cp Procfile /home/ec2-user/ 2>/dev/null || true
 
 # Set correct ownership
 chown -R ec2-user:ec2-user /home/ec2-user/
