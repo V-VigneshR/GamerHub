@@ -1,45 +1,68 @@
 #!/bin/bash
 set -e
-echo "Starting GamerHub service..."
 
+echo "=== Starting GamerHub Server ==="
+
+# Navigate to application directory
 cd /home/ec2-user
-source venv/bin/activate
 
-echo "=== Testing imports ==="
-python -c "import sqlalchemy; print(f'SQLAlchemy version: {sqlalchemy.__version__}')"
-python -c "from flask_sqlalchemy import SQLAlchemy; print('Flask-SQLAlchemy OK')"
-python -c "from app import create_app, db; print('App imports OK')"
-python -c "from app import create_app, db; app = create_app(); print('App creation OK')"
+# Initialize database as ec2-user (this is the key fix!)
+echo "Initializing database as ec2-user..."
+sudo -u ec2-user bash -c '
+    cd /home/ec2-user
+    source venv/bin/activate
+    python init_db.py
+'
 
-echo "=== Testing gunicorn config ==="
-timeout 3 gunicorn --check-config -w 1 -b 127.0.0.1:8001 run:app || {
-    echo "Gunicorn config test failed"
-    exit 1
-}
+# Test application startup
+echo "Testing application startup..."
+sudo -u ec2-user bash -c '
+    cd /home/ec2-user
+    source venv/bin/activate
+    timeout 10s python -c "
+from app import create_app
+app = create_app()
+print(\"✓ Application can be created successfully\")
+with app.app_context():
+    from app.models import db
+    from sqlalchemy import text
+    result = db.session.execute(text(\"SELECT COUNT(*) FROM user\")).scalar()
+    print(f\"✓ Database connection verified (users: {result})\")
+"
+'
 
-echo "=== Starting service ==="
-sudo systemctl daemon-reload
-sudo systemctl stop gamerhub 2>/dev/null || true
-sleep 2
-sudo systemctl start gamerhub
+# Start the systemd service
+echo "Starting GamerHub systemd service..."
+systemctl start gamerhub
+
+# Enable service to start on boot
+systemctl enable gamerhub
+
+# Wait for service to start
 sleep 5
 
+# Verify service is running
 if systemctl is-active --quiet gamerhub; then
-    echo "✓ GamerHub service started successfully!"
-    sudo systemctl status gamerhub --no-pager -l
+    echo "✅ GamerHub service started successfully"
     
-    # Test HTTP response
-    if curl -f -s http://localhost:8000/ > /dev/null; then
-        echo "✓ Service is responding to HTTP requests"
+    # Test the problematic endpoint
+    echo "Testing /auth/new_user endpoint..."
+    if curl -f -s http://localhost:8000/auth/new_user > /dev/null; then
+        echo "✅ /auth/new_user is accessible"
     else
-        echo "⚠ Service running but no HTTP response (might be normal)"
+        echo "⚠️  /auth/new_user might have issues - check application logs"
+        # Show recent logs for debugging
+        journalctl -u gamerhub --no-pager -l | tail -5
     fi
+    
+    echo "🎉 Server started successfully!"
+    echo "Application is accessible at: http://localhost:8000"
+    
 else
-    echo "✗ Service failed to start"
-    sudo systemctl status gamerhub --no-pager -l
-    echo "=== Recent logs ==="
-    sudo journalctl -u gamerhub --no-pager -l --since "1 minute ago"
+    echo "❌ Service failed to start"
+    echo "Checking service status..."
+    systemctl status gamerhub --no-pager -l
+    echo "Checking recent logs..."
+    journalctl -u gamerhub --no-pager -l | tail -10
     exit 1
 fi
-
-echo "✓ Server startup completed!"
