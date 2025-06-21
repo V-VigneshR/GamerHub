@@ -65,42 +65,95 @@ cd /home/ec2-user
 echo "Files copied to /home/ec2-user:"
 ls -la
 
-# Verify requirements.txt exists
-echo "Checking if requirements.txt exists in /home/ec2-user..."
-ls -la requirements.txt
+# Show current requirements.txt
+echo "Current requirements.txt content:"
+cat requirements.txt
+
+# Create a backup of original requirements
+cp requirements.txt requirements.txt.backup
+
+# Fix SQLAlchemy compatibility issues by pinning versions
+echo "Fixing SQLAlchemy compatibility..."
+cat > requirements_fixed.txt << 'EOF'
+Flask==2.3.3
+Flask-SQLAlchemy==3.0.5
+SQLAlchemy==2.0.23
+Flask-Migrate==4.0.5
+Werkzeug==2.3.7
+gunicorn==21.2.0
+Jinja2==3.1.2
+MarkupSafe==2.1.3
+click==8.1.7
+itsdangerous==2.1.2
+alembic==1.12.1
+Mako==1.2.4
+python-dateutil==2.8.2
+six==1.16.0
+typing_extensions==4.8.0
+greenlet==3.0.1
+EOF
+
+# If original requirements has additional packages not in our fixed list, append them
+echo "Checking for additional packages in original requirements..."
+while IFS= read -r line; do
+    # Skip comments and empty lines
+    [[ "$line" =~ ^[[:space:]]*# ]] && continue
+    [[ -z "${line// }" ]] && continue
+    
+    # Extract package name (before == or >= etc.)
+    pkg_name=$(echo "$line" | sed 's/[>=<].*//' | tr '[:upper:]' '[:lower:]')
+    
+    # Check if package is already in our fixed requirements
+    if ! grep -qi "^${pkg_name}==" requirements_fixed.txt; then
+        echo "Adding additional package: $line"
+        echo "$line" >> requirements_fixed.txt
+    fi
+done < requirements.txt
+
+# Use the fixed requirements
+mv requirements_fixed.txt requirements.txt
+
+echo "Updated requirements.txt:"
+cat requirements.txt
 
 # Create virtual environment
 echo "Setting up virtualenv with default Python..."
+rm -rf venv
 python3 -m venv venv
 source venv/bin/activate
 
-# Install dependencies
-echo "Installing Python dependencies..."
+# Install dependencies with fixed versions
+echo "Installing Python dependencies with fixed versions..."
 pip install --upgrade pip
+
+# Install packages individually to catch any issues
+pip install Flask==2.3.3
+pip install SQLAlchemy==2.0.23
+pip install Flask-SQLAlchemy==3.0.5
+pip install Werkzeug==2.3.7
+pip install gunicorn==21.2.0
+
+# Install remaining requirements
 pip install -r requirements.txt
+
+# Test the imports
+echo "Testing critical imports..."
+python -c "import flask; print(f'✓ Flask {flask.__version__}')"
+python -c "import sqlalchemy; print(f'✓ SQLAlchemy {sqlalchemy.__version__}')"
+python -c "from flask_sqlalchemy import SQLAlchemy; print('✓ Flask-SQLAlchemy imported')"
+python -c "import gunicorn; print('✓ Gunicorn imported')"
+
+# Test your app import
+echo "Testing app import..."
+python -c "from app import create_app; print('✓ create_app imported successfully')"
+python -c "from app import create_app, db; app = create_app(); print('✓ App created successfully')"
 
 # Verify installations
 echo "Verifying Flask and Gunicorn installation..."
 python -c "from flask import Flask; print('Flask is available')"
 gunicorn --version
 
-# Check what main file we have (run.py or app.py)
-MAIN_MODULE=""
-if [ -f "run.py" ]; then
-    MAIN_MODULE="run:app"
-    echo "Found run.py - using run:app"
-elif [ -f "app.py" ]; then
-    MAIN_MODULE="app:app"
-    echo "Found app.py - using app:app"
-elif [ -f "main.py" ]; then
-    MAIN_MODULE="main:app"
-    echo "Found main.py - using main:app"
-else
-    echo "ERROR: Could not find main application file (run.py, app.py, or main.py)"
-    exit 1
-fi
-
-# Create systemd service with proper paths and module
+# Create systemd service
 echo "Creating systemd service..."
 sudo tee /etc/systemd/system/gamerhub.service > /dev/null <<EOF
 [Unit]
@@ -114,7 +167,7 @@ Group=ec2-user
 WorkingDirectory=/home/ec2-user
 Environment="PATH=/home/ec2-user/venv/bin:/usr/local/bin:/usr/bin:/bin"
 Environment="PYTHONPATH=/home/ec2-user"
-ExecStart=/home/ec2-user/venv/bin/gunicorn -w 3 -b 0.0.0.0:8000 --chdir /home/ec2-user $MAIN_MODULE
+ExecStart=/home/ec2-user/venv/bin/gunicorn -w 3 -b 0.0.0.0:8000 --chdir /home/ec2-user run:app
 Restart=always
 RestartSec=5
 StandardOutput=syslog
@@ -131,4 +184,4 @@ sudo systemctl daemon-reload
 sudo systemctl enable gamerhub
 
 echo "Dependency installation completed successfully!"
-echo "Main module set to: $MAIN_MODULE"
+echo "SQLAlchemy compatibility issues have been fixed."
