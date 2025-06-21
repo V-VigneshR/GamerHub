@@ -61,6 +61,10 @@ chown -R ec2-user:ec2-user /home/ec2-user/
 # Change to the user directory
 cd /home/ec2-user
 
+# Debug: Show what files we have
+echo "Files copied to /home/ec2-user:"
+ls -la
+
 # Verify requirements.txt exists
 echo "Checking if requirements.txt exists in /home/ec2-user..."
 ls -la requirements.txt
@@ -80,7 +84,23 @@ echo "Verifying Flask and Gunicorn installation..."
 python -c "from flask import Flask; print('Flask is available')"
 gunicorn --version
 
-# Create systemd service
+# Check what main file we have (run.py or app.py)
+MAIN_MODULE=""
+if [ -f "run.py" ]; then
+    MAIN_MODULE="run:app"
+    echo "Found run.py - using run:app"
+elif [ -f "app.py" ]; then
+    MAIN_MODULE="app:app"
+    echo "Found app.py - using app:app"
+elif [ -f "main.py" ]; then
+    MAIN_MODULE="main:app"
+    echo "Found main.py - using main:app"
+else
+    echo "ERROR: Could not find main application file (run.py, app.py, or main.py)"
+    exit 1
+fi
+
+# Create systemd service with proper paths and module
 echo "Creating systemd service..."
 sudo tee /etc/systemd/system/gamerhub.service > /dev/null <<EOF
 [Unit]
@@ -88,13 +108,18 @@ Description=GamerHub Flask App
 After=network.target
 
 [Service]
+Type=simple
 User=ec2-user
 Group=ec2-user
 WorkingDirectory=/home/ec2-user
-Environment="PATH=/home/ec2-user/venv/bin"
-ExecStart=/home/ec2-user/venv/bin/gunicorn -w 3 -b 0.0.0.0:8000 run:app
+Environment="PATH=/home/ec2-user/venv/bin:/usr/local/bin:/usr/bin:/bin"
+Environment="PYTHONPATH=/home/ec2-user"
+ExecStart=/home/ec2-user/venv/bin/gunicorn -w 3 -b 0.0.0.0:8000 --chdir /home/ec2-user $MAIN_MODULE
 Restart=always
 RestartSec=5
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=gamerhub
 
 [Install]
 WantedBy=multi-user.target
@@ -106,3 +131,4 @@ sudo systemctl daemon-reload
 sudo systemctl enable gamerhub
 
 echo "Dependency installation completed successfully!"
+echo "Main module set to: $MAIN_MODULE"
